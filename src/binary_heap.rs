@@ -60,7 +60,7 @@ where
         core::iter::repeat(None).take(N::to_usize()).collect()
     }
 
-    pub fn peek(&mut self) -> Option<&(K, V)> {
+    pub fn peek(&self) -> Option<&(K, V)> {
         self.raw.get(0)
     }
 
