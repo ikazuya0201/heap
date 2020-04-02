@@ -47,7 +47,7 @@ where
         self.len() == 0
     }
 
-    pub fn contains(&self, key: K) -> bool {
+    pub fn contains_key(&self, key: K) -> bool {
         self.table[key.into()].is_some()
     }
 
