@@ -85,10 +85,9 @@ where
     pub fn push_or_update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
         if let Some(index) = self.table[key.into()] {
             self.update_unchecked(index, key, value)
+        } else if self.raw.is_full() {
+            return Err((key, value));
         } else {
-            if self.raw.is_full() {
-                return Err((key, value));
-            }
             unsafe { self.push_unchecked(key, value) }
         }
         Ok(())
@@ -101,6 +100,15 @@ where
         } else if self.raw[index].1 > value {
             self.raw[index] = (key, value);
             self.sift_down(index);
+        }
+    }
+
+    pub fn push(&mut self, key: K, value: V) -> Result<(), (K, V)> {
+        if self.table[key.into()].is_some() {
+            Err((key, value))
+        } else {
+            unsafe { self.push_unchecked(key, value) }
+            Ok(())
         }
     }
 
@@ -174,32 +182,43 @@ mod tests {
     use std::dbg;
 
     #[test]
+    fn test_push() {
+        let mut heap = BinaryHeap::<u8, u8, U4>::new();
+        assert_eq!(heap.push(0, 2), Ok(()));
+        assert_eq!(heap.push(1, 2), Ok(()));
+        assert_eq!(heap.push(2, 2), Ok(()));
+        assert_eq!(heap.push(2, 2), Err((2, 2)));
+        assert_eq!(heap.push(3, 2), Ok(()));
+        assert_eq!(heap.push(3, 2), Err((3, 2)));
+    }
+
+    #[test]
     fn test_pop() {
         let mut heap = BinaryHeap::<u8, u8, U8>::new();
-        heap.push_or_update(2, 1).unwrap();
-        heap.push_or_update(5, 3).unwrap();
-        heap.push_or_update(4, 4).unwrap();
-        heap.push_or_update(3, 5).unwrap();
+        heap.push(2, 1).unwrap();
+        heap.push(5, 3).unwrap();
+        heap.push(4, 4).unwrap();
+        heap.push(3, 5).unwrap();
         assert_eq!(heap.pop(), Some((3, 5)));
         assert_eq!(heap.pop(), Some((4, 4)));
         assert_eq!(heap.pop(), Some((5, 3)));
         assert_eq!(heap.pop(), Some((2, 1)));
         assert_eq!(heap.pop(), None);
 
-        heap.push_or_update(3, 5).unwrap();
-        heap.push_or_update(4, 4).unwrap();
-        heap.push_or_update(5, 3).unwrap();
-        heap.push_or_update(2, 1).unwrap();
+        heap.push(3, 5).unwrap();
+        heap.push(4, 4).unwrap();
+        heap.push(5, 3).unwrap();
+        heap.push(2, 1).unwrap();
         assert_eq!(heap.pop(), Some((3, 5)));
         assert_eq!(heap.pop(), Some((4, 4)));
         assert_eq!(heap.pop(), Some((5, 3)));
         assert_eq!(heap.pop(), Some((2, 1)));
         assert_eq!(heap.pop(), None);
 
-        heap.push_or_update(5, 3).unwrap();
-        heap.push_or_update(4, 4).unwrap();
-        heap.push_or_update(3, 5).unwrap();
-        heap.push_or_update(2, 1).unwrap();
+        heap.push(5, 3).unwrap();
+        heap.push(4, 4).unwrap();
+        heap.push(3, 5).unwrap();
+        heap.push(2, 1).unwrap();
         assert_eq!(heap.pop(), Some((3, 5)));
         assert_eq!(heap.pop(), Some((4, 4)));
         assert_eq!(heap.pop(), Some((5, 3)));
@@ -223,7 +242,7 @@ mod tests {
     #[test]
     fn test_remove() {
         let mut heap = BinaryHeap::<u8, u8, U8>::new();
-        heap.push_or_update(3, 2).unwrap();
+        heap.push(3, 2).unwrap();
         assert_eq!(heap.remove_key(2), Err(2));
         assert_eq!(heap.remove_key(3), Ok(2));
     }
@@ -231,19 +250,19 @@ mod tests {
     #[test]
     fn test_peek() {
         let mut heap = BinaryHeap::<u8, u8, U8>::new();
-        heap.push_or_update(1, 2).unwrap();
+        heap.push(1, 2).unwrap();
         assert_eq!(heap.peek(), Some(&(1, 2)));
-        heap.push_or_update(2, 4).unwrap();
+        heap.push(2, 4).unwrap();
         assert_eq!(heap.peek(), Some(&(2, 4)));
-        heap.push_or_update(3, 3).unwrap();
+        heap.push(3, 3).unwrap();
         assert_eq!(heap.peek(), Some(&(2, 4)));
     }
 
     #[test]
     fn test_clear() {
         let mut heap = BinaryHeap::<u8, u8, U8>::new();
-        heap.push_or_update(1, 2).unwrap();
-        heap.push_or_update(2, 4).unwrap();
+        heap.push(1, 2).unwrap();
+        heap.push(2, 4).unwrap();
         assert_eq!(heap.peek(), Some(&(2, 4)));
         heap.clear();
         assert_eq!(heap.peek(), None);
