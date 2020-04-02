@@ -9,7 +9,6 @@ use generic_array::{ArrayLength, GenericArray};
 
 use crate::vec::Vec;
 
-#[derive(Debug)]
 pub struct BinaryHeap<K, V, N>
 where
     N: ArrayLength<(K, V)> + ArrayLength<Option<usize>>,
@@ -266,8 +265,8 @@ mod tests {
     fn test_remove() {
         let mut heap = BinaryHeap::<u8, u8, U8>::new();
         heap.push(3, 2).unwrap();
-        assert_eq!(heap.remove_key(2), Err(2));
-        assert_eq!(heap.remove_key(3), Ok(2));
+        assert_eq!(heap.remove(2), Err(2));
+        assert_eq!(heap.remove(3), Ok(2));
     }
 
     #[test]
