@@ -27,10 +27,9 @@ where
     V: Ord,
 {
     pub fn new() -> Self {
-        let table = core::iter::repeat(None).take(N::to_usize()).collect();
         Self {
             raw: Vec::new(),
-            table: table,
+            table: Self::init_table(),
             _key: PhantomData,
             _value: PhantomData,
         }
@@ -50,6 +49,15 @@ where
 
     pub fn contains(&self, key: K) -> bool {
         self.table[key.into()].is_some()
+    }
+
+    pub fn clear(&mut self) {
+        self.raw.clear();
+        self.table = Self::init_table();
+    }
+
+    fn init_table() -> GenericArray<Option<usize>, N> {
+        core::iter::repeat(None).take(N::to_usize()).collect()
     }
 
     pub fn peek(&mut self) -> Option<&(K, V)> {
@@ -229,5 +237,15 @@ mod tests {
         assert_eq!(heap.peek(), Some(&(2, 4)));
         heap.push_or_update(3, 3).unwrap();
         assert_eq!(heap.peek(), Some(&(2, 4)));
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut heap = BinaryHeap::<u8, u8, U8>::new();
+        heap.push_or_update(1, 2).unwrap();
+        heap.push_or_update(2, 4).unwrap();
+        assert_eq!(heap.peek(), Some(&(2, 4)));
+        heap.clear();
+        assert_eq!(heap.peek(), None);
     }
 }
