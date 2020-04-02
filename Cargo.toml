@@ -8,4 +8,3 @@ edition = "2018"
 
 [dependencies]
 generic-array = "0.13.2"
-typenum = "1.11.2"
