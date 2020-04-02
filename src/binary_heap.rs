@@ -93,6 +93,15 @@ where
         Ok(())
     }
 
+    pub fn update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
+        if let Some(index) = self.table[key.into()] {
+            self.update_unchecked(index, key, value);
+            Ok(())
+        } else {
+            Err((key, value))
+        }
+    }
+
     fn update_unchecked(&mut self, index: usize, key: K, value: V) {
         if self.raw[index].1 < value {
             self.raw[index] = (key, value);
@@ -228,6 +237,20 @@ mod tests {
 
     #[test]
     fn test_update() {
+        let mut heap = BinaryHeap::<u8, u8, U8>::new();
+        heap.push(2, 1).unwrap();
+        assert_eq!(heap.peek(), Some(&(2, 1)));
+        assert_eq!(heap.update(2, 4), Ok(()));
+        assert_eq!(heap.peek(), Some(&(2, 4)));
+        heap.push(5, 3).unwrap();
+        assert_eq!(heap.peek(), Some(&(2, 4)));
+        assert_eq!(heap.update(5, 5), Ok(()));
+        assert_eq!(heap.peek(), Some(&(5, 5)));
+        assert_eq!(heap.update(3, 2), Err((3, 2)));
+    }
+
+    #[test]
+    fn test_push_or_update() {
         let mut heap = BinaryHeap::<u8, u8, U8>::new();
         heap.push_or_update(2, 1).unwrap();
         heap.push_or_update(2, 4).unwrap();
