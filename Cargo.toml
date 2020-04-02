@@ -1,5 +1,5 @@
 [package]
-name = "heap"
+name = "heaplessheap"
 version = "0.1.0"
 authors = ["Kazuya Iimuro <ikazuya0201@gmail.com>"]
 edition = "2018"
