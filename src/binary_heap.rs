@@ -128,7 +128,7 @@ where
         self.sift_up(old_len);
     }
 
-    pub fn remove_key(&mut self, key: K) -> Result<V, K> {
+    pub fn remove(&mut self, key: K) -> Result<V, K> {
         if let Some(index) = self.table[key.into()] {
             Ok(unsafe { self.remove_key_unchecked(index) })
         } else {
