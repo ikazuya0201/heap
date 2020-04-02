@@ -2,6 +2,7 @@ use core::{mem::MaybeUninit, ptr, slice};
 
 use generic_array::{ArrayLength, GenericArray};
 
+#[derive(Debug)]
 pub struct Vec<A> {
     pub buffer: MaybeUninit<A>,
     pub len: usize,
