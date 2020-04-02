@@ -9,6 +9,19 @@ use generic_array::{ArrayLength, GenericArray};
 
 use crate::vec::Vec;
 
+/// A heapless binary heap implementation.
+///
+/// This binary heap provides update, remove and push_or_update in addition to
+/// push and pop.
+///
+/// ## Time Complexity
+/// |         | push(peek) | pop      | update   | remove   | push_or_update |
+/// |---------|------------|----------|----------|----------|----------------|
+/// | worst   | O(log n)   | O(1)     | O(log n) | O(log n) | O(log n)       |
+///
+/// NOTE: This binary heap has a table of size N inside (like a hash table).  
+/// Then, type K should be convertable to unique ID which is smaller than N.
+
 pub struct BinaryHeap<K, V, N>
 where
     N: ArrayLength<(K, V)> + ArrayLength<Option<usize>>,
