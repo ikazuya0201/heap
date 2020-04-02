@@ -52,6 +52,10 @@ where
         self.table[key.into()].is_some()
     }
 
+    pub fn peek(&mut self) -> Option<&(K, V)> {
+        self.raw.get(0)
+    }
+
     pub fn pop(&mut self) -> Option<(K, V)> {
         if self.is_empty() {
             None
@@ -214,5 +218,16 @@ mod tests {
         heap.push_or_update(3, 2).unwrap();
         assert_eq!(heap.remove_key(2), Err(2));
         assert_eq!(heap.remove_key(3), Ok(2));
+    }
+
+    #[test]
+    fn test_peek() {
+        let mut heap = BinaryHeap::<u8, u8, U8>::new();
+        heap.push_or_update(1, 2).unwrap();
+        assert_eq!(heap.peek(), Some(&(1, 2)));
+        heap.push_or_update(2, 4).unwrap();
+        assert_eq!(heap.peek(), Some(&(2, 4)));
+        heap.push_or_update(3, 3).unwrap();
+        assert_eq!(heap.peek(), Some(&(2, 4)));
     }
 }
