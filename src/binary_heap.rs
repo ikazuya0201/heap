@@ -79,11 +79,22 @@ where
         }
     }
 
-    unsafe fn pop_unchecked(&mut self) -> (K, V) {
-        let item = self.raw.swap_remove_unchecked(0);
-        *self.table.get_unchecked_mut(item.0.into()) = None;
-        self.sift_down(0);
-        item
+    pub fn push(&mut self, key: K, value: V) -> Result<(), (K, V)> {
+        if self.table[key.into()].is_some() {
+            Err((key, value))
+        } else {
+            unsafe { self.push_unchecked(key, value) }
+            Ok(())
+        }
+    }
+
+    pub fn update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
+        if let Some(index) = self.table[key.into()] {
+            unsafe { self.update_unchecked(index, key, value) }
+            Ok(())
+        } else {
+            Err((key, value))
+        }
     }
 
     pub fn push_or_update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
@@ -97,13 +108,19 @@ where
         Ok(())
     }
 
-    pub fn update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
+    pub fn remove(&mut self, key: K) -> Result<V, K> {
         if let Some(index) = self.table[key.into()] {
-            unsafe { self.update_unchecked(index, key, value) }
-            Ok(())
+            Ok(unsafe { self.remove_unchecked(index) })
         } else {
-            Err((key, value))
+            Err(key)
         }
+    }
+
+    unsafe fn pop_unchecked(&mut self) -> (K, V) {
+        let item = self.raw.swap_remove_unchecked(0);
+        *self.table.get_unchecked_mut(item.0.into()) = None;
+        self.sift_down(0);
+        item
     }
 
     unsafe fn update_unchecked(&mut self, index: usize, key: K, value: V) {
@@ -116,28 +133,11 @@ where
         }
     }
 
-    pub fn push(&mut self, key: K, value: V) -> Result<(), (K, V)> {
-        if self.table[key.into()].is_some() {
-            Err((key, value))
-        } else {
-            unsafe { self.push_unchecked(key, value) }
-            Ok(())
-        }
-    }
-
     unsafe fn push_unchecked(&mut self, key: K, value: V) {
         let old_len = self.len();
         self.raw.push_unchecked((key, value));
         *self.table.get_unchecked_mut(key.into()) = Some(old_len);
         self.sift_up(old_len);
-    }
-
-    pub fn remove(&mut self, key: K) -> Result<V, K> {
-        if let Some(index) = self.table[key.into()] {
-            Ok(unsafe { self.remove_unchecked(index) })
-        } else {
-            Err(key)
-        }
     }
 
     unsafe fn remove_unchecked(&mut self, index: usize) -> V {
