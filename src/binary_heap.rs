@@ -33,6 +33,7 @@ where
     K: Into<usize> + Clone + Copy,
     V: Ord,
 {
+    ///Creates an empty binary heap ordered by V.
     pub fn new() -> Self {
         Self {
             raw: Vec::new(),
@@ -42,22 +43,27 @@ where
         }
     }
 
+    ///Returns the length of the heap.
     pub fn len(&self) -> usize {
         self.raw.len()
     }
 
+    ///Returns the capacity of the heap.
     pub fn capacity(&self) -> usize {
         self.raw.capacity()
     }
 
+    ///Checks if the heap is empty.
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    ///Checks if the heap contains the key.
     pub fn contains_key(&self, key: K) -> bool {
         self.table[key.into()].is_some()
     }
 
+    ///Resets the heap.
     pub fn clear(&mut self) {
         self.raw.clear();
         self.table = Self::init_table();
@@ -67,10 +73,12 @@ where
         core::iter::repeat(None).take(N::to_usize()).collect()
     }
 
+    ///Returns the top of the heap.
     pub fn peek(&self) -> Option<&(K, V)> {
         self.raw.get(0)
     }
 
+    ///Returns and removes the top of the heap.
     pub fn pop(&mut self) -> Option<(K, V)> {
         if self.is_empty() {
             None
@@ -79,6 +87,8 @@ where
         }
     }
 
+    ///Pushes the key and value to the heap.
+    ///Returns the key and value as an error if the key already exists in the heap.
     pub fn push(&mut self, key: K, value: V) -> Result<(), (K, V)> {
         if self.table[key.into()].is_some() {
             Err((key, value))
@@ -88,6 +98,8 @@ where
         }
     }
 
+    ///Updates a value in the heap by the given key.
+    ///Returns the key and value as an error if the key does not exist.
     pub fn update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
         if let Some(index) = self.table[key.into()] {
             unsafe { self.update_unchecked(index, key, value) }
@@ -97,6 +109,8 @@ where
         }
     }
 
+    ///Updates the value if the key exists.
+    ///If not, pushes the key and value to the heap.
     pub fn push_or_update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
         if let Some(index) = self.table[key.into()] {
             unsafe { self.update_unchecked(index, key, value) }
@@ -108,6 +122,8 @@ where
         Ok(())
     }
 
+    ///Removes a value by the key and returns the value.
+    ///If the key does not exist, returns the key.
     pub fn remove(&mut self, key: K) -> Result<V, K> {
         if let Some(index) = self.table[key.into()] {
             Ok(unsafe { self.remove_unchecked(index) })
