@@ -3,8 +3,8 @@ use core::{mem::MaybeUninit, ptr, slice};
 use generic_array::{ArrayLength, GenericArray};
 
 pub struct Vec<A> {
-    pub buffer: MaybeUninit<A>,
-    pub len: usize,
+    buffer: MaybeUninit<A>,
+    len: usize,
 }
 
 impl<A> Vec<A> {
@@ -36,43 +36,12 @@ where
         N::to_usize()
     }
 
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
     pub fn clear(&mut self) {
         self.truncate(0);
-    }
-
-    pub fn clone(&self) -> Self
-    where
-        T: Clone,
-    {
-        let mut new = Self::new();
-        new.extend_from_slice(self.as_slice()).unwrap();
-        new
-    }
-
-    pub fn extend<I>(&mut self, iter: I)
-    where
-        I: IntoIterator<Item = T>,
-    {
-        for elem in iter {
-            self.push(elem).ok().unwrap()
-        }
-    }
-
-    pub fn extend_from_slice(&mut self, other: &[T]) -> Result<(), ()>
-    where
-        T: Clone,
-    {
-        if self.len + other.len() > self.capacity() {
-            // won't fit in the `Vec`; don't modify anything and return an error
-            Err(())
-        } else {
-            for elem in other {
-                unsafe {
-                    self.push_unchecked(elem.clone());
-                }
-            }
-            Ok(())
-        }
     }
 
     pub fn is_full(&self) -> bool {
@@ -86,15 +55,6 @@ where
         (self.buffer.as_ptr() as *const T).add(self.len).read()
     }
 
-    pub fn push(&mut self, item: T) -> Result<(), T> {
-        if self.len < self.capacity() {
-            unsafe { self.push_unchecked(item) }
-            Ok(())
-        } else {
-            Err(item)
-        }
-    }
-
     pub unsafe fn push_unchecked(&mut self, item: T) {
         // NOTE(ptr::write) the memory slot that we are about to write to is uninitialized. We
         // use `ptr::write` to avoid running `T`'s destructor on the uninitialized memory
@@ -105,7 +65,7 @@ where
         self.len += 1;
     }
 
-    unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
+    pub unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
         let length = self.len;
         debug_assert!(index < length);
         ptr::swap(
@@ -113,11 +73,6 @@ where
             self.as_mut_slice().get_unchecked_mut(length - 1),
         );
         self.pop_unchecked()
-    }
-
-    pub fn swap_remove(&mut self, index: usize) -> T {
-        assert!(index < self.len);
-        unsafe { self.swap_remove_unchecked(index) }
     }
 
     pub fn truncate(&mut self, len: usize) {

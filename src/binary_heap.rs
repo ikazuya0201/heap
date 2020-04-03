@@ -48,7 +48,7 @@ where
     }
 
     pub fn len(&self) -> usize {
-        self.raw.len
+        self.raw.len()
     }
 
     pub fn capacity(&self) -> usize {
@@ -85,10 +85,7 @@ where
     }
 
     unsafe fn pop_unchecked(&mut self) -> (K, V) {
-        if self.len() > 1 {
-            self.swap(0, self.len() - 1);
-        }
-        let item = self.raw.pop_unchecked();
+        let item = self.raw.swap_remove_unchecked(0);
         self.table[item.0.into()] = None;
         self.sift_down(0);
         item
@@ -149,12 +146,8 @@ where
     }
 
     unsafe fn remove_key_unchecked(&mut self, index: usize) -> V {
-        let mut item = self.raw.pop_unchecked();
-
-        if !self.is_empty() {
-            core::mem::swap(&mut item, self.raw.as_mut_slice().get_unchecked_mut(index));
-            self.sift_down(index);
-        }
+        let item = self.raw.swap_remove_unchecked(index);
+        self.sift_down(index);
         self.table[item.0.into()] = None;
         item.1
     }
@@ -280,6 +273,7 @@ mod tests {
         heap.push(3, 2).unwrap();
         assert_eq!(heap.remove(2), Err(2));
         assert_eq!(heap.remove(3), Ok(2));
+        assert_eq!(heap.remove(3), Err(3));
     }
 
     #[test]
