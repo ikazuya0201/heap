@@ -1,8 +1,3 @@
-#[cfg(test)]
-extern crate std;
-#[cfg(test)]
-use std::dbg;
-
 use core::marker::PhantomData;
 
 use generic_array::{ArrayLength, GenericArray};
@@ -192,8 +187,6 @@ where
 mod tests {
     use super::BinaryHeap;
     use generic_array::typenum::consts::*;
-    extern crate std;
-    use std::dbg;
 
     #[test]
     fn test_push() {
