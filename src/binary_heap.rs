@@ -90,7 +90,7 @@ where
     ///Pushes the key and value to the heap.
     ///Returns the key and value as an error if the key already exists in the heap.
     pub fn push(&mut self, key: K, value: V) -> Result<(), (K, V)> {
-        if self.table[key.into()].is_some() {
+        if self.key_to_index(key).is_some() {
             Err((key, value))
         } else {
             unsafe { self.push_unchecked(key, value) }
@@ -101,7 +101,7 @@ where
     ///Updates a value in the heap by the given key.
     ///Returns the key and value as an error if the key does not exist.
     pub fn update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
-        if let Some(index) = self.table[key.into()] {
+        if let Some(index) = self.key_to_index(key) {
             unsafe { self.update_unchecked(index, key, value) }
             Ok(())
         } else {
@@ -112,10 +112,8 @@ where
     ///Updates the value if the key exists.
     ///If not, pushes the key and value to the heap.
     pub fn push_or_update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
-        if let Some(index) = self.table[key.into()] {
+        if let Some(index) = self.key_to_index(key) {
             unsafe { self.update_unchecked(index, key, value) }
-        } else if self.raw.is_full() {
-            return Err((key, value));
         } else {
             unsafe { self.push_unchecked(key, value) }
         }
@@ -125,10 +123,18 @@ where
     ///Removes a value by the key and returns the value.
     ///If the key does not exist, returns the key.
     pub fn remove(&mut self, key: K) -> Result<V, K> {
-        if let Some(index) = self.table[key.into()] {
+        if let Some(index) = self.key_to_index(key) {
             Ok(unsafe { self.remove_unchecked(index) })
         } else {
             Err(key)
+        }
+    }
+
+    fn key_to_index(&self, key: K) -> Option<usize> {
+        if key.into() >= N::to_usize() {
+            None
+        } else {
+            self.table[key.into()]
         }
     }
 
