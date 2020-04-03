@@ -36,10 +36,6 @@ where
         N::to_usize()
     }
 
-    pub fn len(&self) -> usize {
-        self.len
-    }
-
     pub fn clear(&mut self) {
         self.truncate(0);
     }
