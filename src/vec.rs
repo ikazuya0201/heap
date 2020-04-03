@@ -64,11 +64,15 @@ where
     pub unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
         let length = self.len;
         debug_assert!(index < length);
-        ptr::swap(
-            self.as_mut_slice().get_unchecked_mut(index),
-            self.as_mut_slice().get_unchecked_mut(length - 1),
-        );
+        self.swap_unchecked(index, length - 1);
         self.pop_unchecked()
+    }
+
+    pub unsafe fn swap_unchecked(&mut self, a: usize, b: usize) {
+        ptr::swap(
+            self.as_mut_slice().get_unchecked_mut(a),
+            self.as_mut_slice().get_unchecked_mut(b),
+        );
     }
 
     pub fn truncate(&mut self, len: usize) {
