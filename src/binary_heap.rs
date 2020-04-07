@@ -30,7 +30,7 @@ where
 impl<K, V, N> BinaryHeap<K, V, N>
 where
     N: ArrayLength<(K, V)> + ArrayLength<Option<usize>>,
-    K: Into<usize> + Clone + Copy,
+    K: Into<usize> + Clone,
     V: Ord,
 {
     ///Creates an empty binary heap ordered by V.
@@ -90,7 +90,7 @@ where
     ///Pushes the key and value to the heap.
     ///Returns the key and value as an error if the key already exists in the heap.
     pub fn push(&mut self, key: K, value: V) -> Result<(), (K, V)> {
-        if self.key_to_index(key).is_some() {
+        if self.key_to_index(key.clone()).is_some() {
             Err((key, value))
         } else {
             unsafe { self.push_unchecked(key, value) }
@@ -101,7 +101,7 @@ where
     ///Updates a value in the heap by the given key.
     ///Returns the key and value as an error if the key does not exist.
     pub fn update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
-        if let Some(index) = self.key_to_index(key) {
+        if let Some(index) = self.key_to_index(key.clone()) {
             unsafe { self.update_unchecked(index, key, value) }
             Ok(())
         } else {
@@ -112,7 +112,7 @@ where
     ///Updates the value if the key exists.
     ///If not, pushes the key and value to the heap.
     pub fn push_or_update(&mut self, key: K, value: V) -> Result<(), (K, V)> {
-        if let Some(index) = self.key_to_index(key) {
+        if let Some(index) = self.key_to_index(key.clone()) {
             unsafe { self.update_unchecked(index, key, value) }
         } else {
             unsafe { self.push_unchecked(key, value) }
@@ -123,7 +123,7 @@ where
     ///Removes a value by the key and returns the value.
     ///If the key does not exist, returns the key.
     pub fn remove(&mut self, key: K) -> Result<V, K> {
-        if let Some(index) = self.key_to_index(key) {
+        if let Some(index) = self.key_to_index(key.clone()) {
             Ok(unsafe { self.remove_unchecked(index) })
         } else {
             Err(key)
@@ -131,7 +131,7 @@ where
     }
 
     fn key_to_index(&self, key: K) -> Option<usize> {
-        if key.into() >= N::to_usize() {
+        if key.clone().into() >= N::to_usize() {
             None
         } else {
             self.table[key.into()]
@@ -140,7 +140,7 @@ where
 
     unsafe fn pop_unchecked(&mut self) -> (K, V) {
         let item = self.raw.swap_remove_unchecked(0);
-        *self.table.get_unchecked_mut(item.0.into()) = None;
+        *self.table.get_unchecked_mut(item.0.clone().into()) = None;
         self.sift_down(0);
         item
     }
@@ -157,7 +157,7 @@ where
 
     unsafe fn push_unchecked(&mut self, key: K, value: V) {
         let old_len = self.len();
-        self.raw.push_unchecked((key, value));
+        self.raw.push_unchecked((key.clone(), value));
         *self.table.get_unchecked_mut(key.into()) = Some(old_len);
         self.sift_up(old_len);
     }
@@ -198,8 +198,8 @@ where
     }
 
     unsafe fn swap_unchecked(&mut self, a: usize, b: usize) {
-        let ka = self.raw.get_unchecked(a).0.into();
-        let kb = self.raw.get_unchecked(b).0.into();
+        let ka = self.raw.get_unchecked(a).0.clone().into();
+        let kb = self.raw.get_unchecked(b).0.clone().into();
         self.raw.swap_unchecked(a, b);
         self.swap_table_unchecked(ka, kb);
     }
