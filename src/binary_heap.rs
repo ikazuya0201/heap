@@ -37,7 +37,7 @@ where
     pub fn new() -> Self {
         Self {
             raw: Vec::new(),
-            table: Self::init_table(),
+            table: GenericArray::default(),
             _key: PhantomData,
             _value: PhantomData,
         }
@@ -66,11 +66,7 @@ where
     ///Resets the heap.
     pub fn clear(&mut self) {
         self.raw.clear();
-        self.table = Self::init_table();
-    }
-
-    fn init_table() -> GenericArray<Option<usize>, N> {
-        core::iter::repeat(None).take(N::to_usize()).collect()
+        self.table = GenericArray::default();
     }
 
     ///Returns the top of the heap.
