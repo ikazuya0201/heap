@@ -120,6 +120,8 @@ where
     ///If the key does not exist, returns the key.
     pub fn remove(&mut self, key: K) -> Result<V, K> {
         if let Some(index) = self.key_to_index(key.clone()) {
+            #[cfg(test)]
+            dbg!(index);
             Ok(unsafe { self.remove_unchecked(index) })
         } else {
             Err(key)
@@ -135,7 +137,12 @@ where
     }
 
     unsafe fn pop_unchecked(&mut self) -> (K, V) {
-        let item = self.raw.swap_remove_unchecked(0);
+        self.swap_unchecked(0, self.len() - 1);
+        let item = self.raw.pop_unchecked();
+        if !self.is_empty() {
+            let key = self.raw.get_unchecked(0).0.clone();
+            *self.table.get_unchecked_mut(key.into()) = Some(0);
+        }
         *self.table.get_unchecked_mut(item.0.clone().into()) = None;
         self.sift_down(0);
         item
@@ -144,7 +151,7 @@ where
     unsafe fn update_unchecked(&mut self, index: usize, key: K, value: V) {
         if self.raw.get_unchecked(index).1 < value {
             *self.raw.get_unchecked_mut(index) = (key, value);
-            self.sift_up(index);
+            self.sift_up(0, index);
         } else if self.raw.get_unchecked(index).1 > value {
             *self.raw.get_unchecked_mut(index) = (key, value);
             self.sift_down(index);
@@ -155,18 +162,23 @@ where
         let old_len = self.len();
         self.raw.push_unchecked((key.clone(), value));
         *self.table.get_unchecked_mut(key.into()) = Some(old_len);
-        self.sift_up(old_len);
+        self.sift_up(0, old_len);
     }
 
     unsafe fn remove_unchecked(&mut self, index: usize) -> V {
-        let item = self.raw.swap_remove_unchecked(index);
-        self.sift_down(index);
+        self.swap_unchecked(index, self.len() - 1);
+        let item = self.raw.pop_unchecked();
+        if !self.is_empty() {
+            let key = self.raw.get_unchecked(index).0.clone();
+            *self.table.get_unchecked_mut(key.into()) = Some(index);
+        }
         *self.table.get_unchecked_mut(item.0.into()) = None;
+        self.sift_down(index);
         item.1
     }
 
-    unsafe fn sift_up(&mut self, mut pos: usize) {
-        while pos > 0 {
+    unsafe fn sift_up(&mut self, start: usize, mut pos: usize) {
+        while pos > start {
             let parent = (pos - 1) / 2;
             if self.raw.get_unchecked(pos).1 <= self.raw.get_unchecked(parent).1 {
                 break;
@@ -179,6 +191,7 @@ where
     unsafe fn sift_down(&mut self, mut pos: usize) {
         let end = self.len();
         let mut child = 2 * pos + 1;
+        let start = pos;
         while child < end {
             let right = child + 1;
             if right < end && self.raw.get_unchecked(child).1 < self.raw.get_unchecked(right).1 {
@@ -191,6 +204,7 @@ where
             pos = child;
             child = 2 * pos + 1;
         }
+        self.sift_up(start, pos);
     }
 
     unsafe fn swap_unchecked(&mut self, a: usize, b: usize) {
@@ -288,10 +302,17 @@ mod tests {
     #[test]
     fn test_remove() {
         let mut heap = BinaryHeap::<u8, u8, U8>::new();
-        heap.push(3, 2).unwrap();
+        assert_eq!(heap.push(0, 3), Ok(()));
+        assert_eq!(heap.pop(), Some((0, 3)));
+        assert_eq!(heap.remove(1), Err(1));
+        assert_eq!(heap.push(1, 1), Ok(()));
         assert_eq!(heap.remove(2), Err(2));
-        assert_eq!(heap.remove(3), Ok(2));
+        assert_eq!(heap.push(2, 2), Ok(()));
+        assert_eq!(heap.pop(), Some((2, 2)));
         assert_eq!(heap.remove(3), Err(3));
+        assert_eq!(heap.push(3, 0), Ok(()));
+        assert_eq!(heap.pop(), Some((1, 1)));
+        assert_eq!(heap.remove(3), Ok(0));
     }
 
     #[test]
