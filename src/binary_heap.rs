@@ -17,6 +17,7 @@ use crate::vec::Vec;
 /// NOTE: This binary heap has a table of size N inside (like a hash table).  
 /// Then, type K should be convertable to unique ID which is smaller than N.
 
+#[derive(Clone)]
 pub struct BinaryHeap<K, V, N>
 where
     N: ArrayLength<(K, V)> + ArrayLength<Option<usize>>,

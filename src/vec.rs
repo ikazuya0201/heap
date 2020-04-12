@@ -44,6 +44,22 @@ where
         self.len == self.capacity()
     }
 
+    pub fn extend_from_slice(&mut self, other: &[T]) -> Result<(), ()>
+    where
+        T: Clone,
+    {
+        if self.len + other.len() > self.capacity() {
+            Err(())
+        } else {
+            for element in other {
+                unsafe {
+                    self.push_unchecked(element.clone());
+                }
+            }
+            Ok(())
+        }
+    }
+
     pub unsafe fn pop_unchecked(&mut self) -> T {
         debug_assert!(!self.as_slice().is_empty());
 
@@ -86,6 +102,21 @@ where
                 ptr::drop_in_place(self.as_mut_slice().get_unchecked_mut(len));
             }
         }
+    }
+}
+
+impl<T, N> Clone for Vec<GenericArray<T, N>>
+where
+    T: Clone,
+    N: ArrayLength<T>,
+{
+    fn clone(&self) -> Self
+    where
+        T: Clone,
+    {
+        let mut new = Self::new();
+        new.extend_from_slice(&self).unwrap();
+        new
     }
 }
 
