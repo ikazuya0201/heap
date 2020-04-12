@@ -17,7 +17,6 @@ use crate::vec::Vec;
 /// NOTE: This binary heap has a table of size N inside (like a hash table).  
 /// Then, type K should be convertable to unique ID which is smaller than N.
 
-#[derive(Clone)]
 pub struct BinaryHeap<K, V, N>
 where
     N: ArrayLength<(K, V)> + ArrayLength<Option<usize>>,
@@ -220,6 +219,22 @@ where
             self.table.as_mut_slice().get_unchecked_mut(a),
             self.table.as_mut_slice().get_unchecked_mut(b),
         )
+    }
+}
+
+impl<K, V, N> Clone for BinaryHeap<K, V, N>
+where
+    K: Clone,
+    V: Clone,
+    N: ArrayLength<(K, V)> + ArrayLength<Option<usize>>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            raw: self.raw.clone(),
+            table: self.table.clone(),
+            _key: PhantomData,
+            _value: PhantomData,
+        }
     }
 }
 
