@@ -40,6 +40,7 @@ where
         self.truncate(0);
     }
 
+    #[allow(unused)]
     pub fn is_full(&self) -> bool {
         self.len == self.capacity()
     }
@@ -77,6 +78,7 @@ where
         self.len += 1;
     }
 
+    #[allow(unused)]
     pub unsafe fn swap_remove_unchecked(&mut self, index: usize) -> T {
         let length = self.len;
         debug_assert!(index < length);
