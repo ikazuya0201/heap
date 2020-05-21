@@ -2,21 +2,21 @@ use core::{mem::MaybeUninit, ptr, slice};
 
 use generic_array::{ArrayLength, GenericArray};
 
-pub struct Vec<A> {
+pub struct RawVec<A> {
     buffer: MaybeUninit<A>,
     len: usize,
 }
 
-impl<A> Vec<A> {
+impl<A> RawVec<A> {
     pub const fn new() -> Self {
-        Self {
+        RawVec {
             buffer: MaybeUninit::uninit(),
             len: 0,
         }
     }
 }
 
-impl<T, N> Vec<GenericArray<T, N>>
+impl<T, N> RawVec<GenericArray<T, N>>
 where
     N: ArrayLength<T>,
 {
@@ -105,7 +105,7 @@ where
     }
 }
 
-impl<T, N> Clone for Vec<GenericArray<T, N>>
+impl<T, N> Clone for RawVec<GenericArray<T, N>>
 where
     T: Clone,
     N: ArrayLength<T>,
@@ -120,7 +120,7 @@ where
     }
 }
 
-impl<T, N> core::ops::Deref for Vec<GenericArray<T, N>>
+impl<T, N> core::ops::Deref for RawVec<GenericArray<T, N>>
 where
     N: ArrayLength<T>,
 {
@@ -131,7 +131,7 @@ where
     }
 }
 
-impl<T, N> core::ops::DerefMut for Vec<GenericArray<T, N>>
+impl<T, N> core::ops::DerefMut for RawVec<GenericArray<T, N>>
 where
     N: ArrayLength<T>,
 {

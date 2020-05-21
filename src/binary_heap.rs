@@ -2,7 +2,7 @@ use core::marker::PhantomData;
 
 use generic_array::{ArrayLength, GenericArray};
 
-use crate::vec::Vec;
+use crate::raw_vec::RawVec;
 
 /// A heapless binary heap implementation.
 ///
@@ -21,7 +21,7 @@ pub struct BinaryHeap<K, V, N>
 where
     N: ArrayLength<(K, V)> + ArrayLength<Option<usize>>,
 {
-    raw: Vec<GenericArray<(K, V), N>>,
+    raw: RawVec<GenericArray<(K, V), N>>,
     table: GenericArray<Option<usize>, N>,
     _key: PhantomData<fn() -> K>,
     _value: PhantomData<fn() -> V>,
@@ -36,7 +36,7 @@ where
     ///Creates an empty binary heap ordered by V.
     pub fn new() -> Self {
         Self {
-            raw: Vec::new(),
+            raw: RawVec::new(),
             table: GenericArray::default(),
             _key: PhantomData,
             _value: PhantomData,
